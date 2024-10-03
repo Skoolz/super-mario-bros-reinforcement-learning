@@ -26,6 +26,8 @@ from matplotlib import animation
 
 import imageio
 
+from m_utils import GameObsInfo
+
 
 class SMBRamWrapper(gym.ObservationWrapper):
     def __init__(self, env, crop_dim=[0, 16, 0, 13], n_stack=4, n_skip=2):
@@ -59,8 +61,8 @@ class SMBRamWrapper(gym.ObservationWrapper):
         obs = self.frame_stack[:,:,::self.n_skip]
         return obs
     
-    def reset(self):
-        obs = self.env.reset()
+    def reset(self,seed=None,options=None):
+        obs,info = self.env.reset()
         self.frame_stack = np.zeros((self.height, self.width, (self.n_stack-1)*self.n_skip+1))
         grid = smb_grid(self.env)
         frame = grid.rendered_screen # 2d array
@@ -68,7 +70,7 @@ class SMBRamWrapper(gym.ObservationWrapper):
         for i in range(self.frame_stack.shape[-1]):
             self.frame_stack[:,:,i] = frame
         obs = self.frame_stack[:,:,::self.n_skip]
-        return obs
+        return obs,info
 
     def crop_obs(self, im):
         '''
@@ -86,7 +88,8 @@ def load_smb_env(name='SuperMarioBros-1-1-v0', crop_dim=[0,16,0,13], n_stack=2, 
     '''
     env = gym_super_mario_bros.make(name)
     env = JoypadSpace(env, SIMPLE_MOVEMENT)
-    env_wrap = SMBRamWrapper(env, crop_dim, n_stack=n_stack, n_skip=n_skip)
+    env_wrap = GameObsInfo(env)
+    env_wrap = SMBRamWrapper(env_wrap, crop_dim, n_stack=n_stack, n_skip=n_skip)
     env_wrap = DummyVecEnv([lambda: env_wrap])
     
     return env_wrap
@@ -105,10 +108,12 @@ class SMB():
             states = self.env.reset()
             done = False
             score = 0
+
+
             
             if render == True:
                 while not done:
-                    self.env.render()
+                    self.env.envs[0].render()
                     action, _ = self.model.predict(states, deterministic=deterministic)
                     states, reward, done, info = self.env.step(action)
                     score += reward
