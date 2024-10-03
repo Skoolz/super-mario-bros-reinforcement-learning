@@ -6,26 +6,25 @@ from collect_data import create_dataloader
 from vae import VAE
 from torch.nn import functional as F
 
-
 # Константы
 DATASET_FOLDER = 'game_images_dataset'  # Папка для хранения данных
 DATASET_FILENAME = 'game_dataset.npy'  # Имя файла для хранения всех изображений
-BATCH_SIZE = 4
+BATCH_SIZE = 5
 LEARNING_RATE = 0.00001
-EPOCHS = 100
-INTERMEDIATE_SAVE_FREQUENCY = 10
+EPOCHS = 200
+INTERMEDIATE_SAVE_FREQUENCY = 50
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_SAVE_PATH = 'vae_model.pth'
 INTERMEDIATE_MODEL_SAVE_PATH = 'vae_model_epoch_{}.pth'
-
-
-
-
-# Определение функции потерь (например, для VAE это может быть рекуррентная ошибка + KL дивергенция)
+USE_FLOAT16 = True  # Переключатель для использования float16
 
 # Функция обучения
-def train_vae(model, dataloader, epochs, device):
+def train_vae(model, dataloader, epochs, device, use_float16=False):
     model.to(device)
+    
+    if use_float16:
+        model.half()  # Перевод модели в формат float16
+    
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     for epoch in range(epochs):
@@ -37,11 +36,14 @@ def train_vae(model, dataloader, epochs, device):
             # Перемещение данных на устройство
             data = data.to(device)
             
+            if use_float16:
+                data = data.half()  # Перевод данных в формат float16
+            
             # Обнуление градиентов
             optimizer.zero_grad()
             
             # Прямой проход через модель
-            recon_batch,loss = model.forward(data,training=True)
+            recon_batch, loss = model.forward(data, training=True)
             
             # Обратное распространение
             loss.backward()
@@ -64,6 +66,4 @@ def train_vae(model, dataloader, epochs, device):
 
 dataloader = create_dataloader(os.path.join(DATASET_FOLDER, DATASET_FILENAME), batch_size=BATCH_SIZE, shuffle=True)
 
-model = VAE().to(DEVICE)
-
-train_vae(model, dataloader, EPOCHS, DEVICE)
+train_vae(VAE(), dataloader, EPOCHS, DEVICE, USE_FLOAT16)

@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
 
     s = Adv_SMB(env=env_wrap,model=model)
-    s.collect_game_dataset(total_images=4)  # Соберем 100 эпизодов данных
+    s.collect_game_dataset(total_images=500)  # Соберем 100 эпизодов данных
 
     # Создаем DataLoader для обучения
     # dataloader = create_dataloader(os.path.join(DATASET_FOLDER, DATASET_FILENAME))
