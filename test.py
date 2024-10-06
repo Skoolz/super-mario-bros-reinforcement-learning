@@ -1,6 +1,8 @@
 from gym_utils import *
 import torch
 
+from pstd.sd.ddpm import DDPMSampler
+
 crop_dim = [0, 16, 0, 13]
 n_stack = 4
 n_skip = 4
@@ -15,8 +17,10 @@ n_skip = 4
 
 #print(info[0]['game_screen'].shape)
 
-loss = (torch.rand(size=(10,5,5,3))-torch.rand(size=(10,5,5,3)))**2
+d = DDPMSampler(generator=torch.Generator())
 
-loss = loss.mean()
+x = torch.ones(size=(2,4,5,5))
 
-print(loss.shape)
+x,noise = d.add_noise(x,torch.tensor([999,0],dtype=torch.int32))
+
+print(noise.shape)

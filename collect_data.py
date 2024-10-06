@@ -48,15 +48,11 @@ class CustomDataset(Dataset):
 
 # collate_fn для обработки батчей
 def collate_fn(batch):
-    # Преобразуем батч изображений в PyTorch тензор
     images = np.stack(batch, axis=0)  # Из списка изображений создаем 4D numpy массив (batch_size, height, width, channels)
     images = torch.tensor(images, dtype=torch.float32)  # Преобразуем в PyTorch тензор
-    #convert to pytorch format
-
     
     images = images.permute(0,3,1,2) #(B,C,H,W)
 
-    #convert images to 256,256
     images = F.interpolate(images, size=(256, 256), mode='nearest')
     
     images = rescale(images,(0,255),(-1,1),False)
@@ -126,8 +122,6 @@ def create_dataloader(dataset_file, batch_size=BATCH_SIZE, shuffle=True):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
     return dataloader
 
-# Пример использования:
-
 if __name__ == '__main__':
     MODEL_DIR = './models'
 
@@ -142,11 +136,4 @@ if __name__ == '__main__':
 
 
     s = Adv_SMB(env=env_wrap,model=model)
-    s.collect_game_dataset(total_images=500)  # Соберем 100 эпизодов данных
-
-    # Создаем DataLoader для обучения
-    # dataloader = create_dataloader(os.path.join(DATASET_FOLDER, DATASET_FILENAME))
-
-    # for batch in dataloader:
-    #     # Здесь batch уже преобразован в PyTorch тензор
-    #     print(batch.shape)  # (batch_size, height, width, channels)
+    s.collect_game_dataset() 

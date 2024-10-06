@@ -116,8 +116,20 @@ class DDPMSampler:
         # here mu = sqrt_alpha_prod * original_samples and sigma = sqrt_one_minus_alpha_prod
         noise = torch.randn(original_samples.shape, generator=self.generator, device=original_samples.device, dtype=original_samples.dtype)
         noisy_samples = sqrt_alpha_prod * original_samples + sqrt_one_minus_alpha_prod * noise
-        return noisy_samples
+        return noisy_samples,noise
 
+    
+    def get_time_embedding(self, timestep):
+        # Shape: (160,)
+        freqs = torch.pow(10000, -torch.arange(start=0, end=160, dtype=torch.float32) / 160)
         
+        # Превращаем timestep в тензор с размерностью (batch_size, 1)
+        timestep = timestep[:, None].float()
+        
+        # Shape: (batch_size, 160)
+        x = timestep * freqs[None, :]
+        
+        # Shape: (batch_size, 160 * 2)
+        return torch.cat([torch.cos(x), torch.sin(x)], dim=-1)
 
     

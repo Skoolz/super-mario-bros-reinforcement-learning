@@ -43,4 +43,18 @@ class VAE(nn.Module):
             return x,loss
 
         return x
-            
+    
+    def encode(self,x:torch.tensor,noise:torch.tensor=None):
+        batch_size,channels,height,width = x.shape
+        if(noise is None):
+            noise = torch.rand(size=(batch_size,4,height//8,width//8),device=x.device,dtype=x.dtype)
+        
+        x,_,_ = self.encoder(x,noise=noise)
+
+        return x
+    
+    def decode(self,x:torch.tensor):
+        print(x.shape)
+        x = self.decoder(x)
+
+        return x

@@ -9,25 +9,51 @@ from torch.nn import functional as F
 # Константы
 DATASET_FOLDER = 'game_images_dataset'  # Папка для хранения данных
 DATASET_FILENAME = 'game_dataset.npy'  # Имя файла для хранения всех изображений
-BATCH_SIZE = 5
+BATCH_SIZE = 25
 LEARNING_RATE = 0.00001
-EPOCHS = 200
-INTERMEDIATE_SAVE_FREQUENCY = 50
+EPOCHS = 25
+INTERMEDIATE_SAVE_FREQUENCY = 5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_SAVE_PATH = 'vae_model.pth'
-INTERMEDIATE_MODEL_SAVE_PATH = 'vae_model_epoch_{}.pth'
-USE_FLOAT16 = True  # Переключатель для использования float16
+CHECKPOINT_PATH = 'vae_checkpoint.pth'
+USE_FLOAT16 = False  # Переключатель для использования float16
+
+# Функция для сохранения состояния обучения
+def save_checkpoint(model, optimizer, epoch, path):
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch
+    }
+    torch.save(checkpoint, path)
+    print(f"Checkpoint saved to {path}")
+
+# Функция для загрузки состояния обучения
+def load_checkpoint(model, optimizer, path):
+    if os.path.exists(path):
+        checkpoint = torch.load(path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch']
+        print(f"Checkpoint loaded from {path}, starting from epoch {start_epoch+1}")
+        return start_epoch
+    else:
+        print("No checkpoint found, starting from scratch")
+        return 0
 
 # Функция обучения
-def train_vae(model, dataloader, epochs, device, use_float16=False):
+def train_vae(model, dataloader, epochs, device, use_float16=False, checkpoint_path=None):
     model.to(device)
     
     if use_float16:
         model.half()  # Перевод модели в формат float16
     
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    
+    # Если существует чекпоинт, загружаем модель, оптимизатор и номер эпохи
+    start_epoch = load_checkpoint(model, optimizer, checkpoint_path) if checkpoint_path else 0
 
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         model.train()
         running_loss = 0.0
         progress_bar = tqdm(enumerate(dataloader), total=len(dataloader))
@@ -52,10 +78,10 @@ def train_vae(model, dataloader, epochs, device, use_float16=False):
             running_loss += loss.item()
             progress_bar.set_description(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.6f}")
         
-        # Сохранение промежуточной модели
+        # Сохранение промежуточного состояния модели (чекпоинт)
         if (epoch + 1) % INTERMEDIATE_SAVE_FREQUENCY == 0:
-            torch.save(model.state_dict(), INTERMEDIATE_MODEL_SAVE_PATH.format(epoch + 1))
-
+            save_checkpoint(model, optimizer, epoch, checkpoint_path)
+        
         print(f"Epoch [{epoch+1}/{epochs}], Average Loss: {running_loss / len(dataloader.dataset):.6f}")
 
     # Сохранение финальной модели
@@ -66,4 +92,4 @@ def train_vae(model, dataloader, epochs, device, use_float16=False):
 
 dataloader = create_dataloader(os.path.join(DATASET_FOLDER, DATASET_FILENAME), batch_size=BATCH_SIZE, shuffle=True)
 
-train_vae(VAE(), dataloader, EPOCHS, DEVICE, USE_FLOAT16)
+train_vae(VAE(), dataloader, EPOCHS, DEVICE, USE_FLOAT16, CHECKPOINT_PATH)
