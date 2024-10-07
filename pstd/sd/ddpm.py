@@ -121,7 +121,7 @@ class DDPMSampler:
     
     def get_time_embedding(self, timestep):
         # Shape: (160,)
-        freqs = torch.pow(10000, -torch.arange(start=0, end=160, dtype=torch.float32) / 160)
+        freqs = torch.pow(10000, -torch.arange(start=0, end=160, dtype=torch.float32) / 160).to(timestep.device)
         
         # Превращаем timestep в тензор с размерностью (batch_size, 1)
         timestep = timestep[:, None].float()

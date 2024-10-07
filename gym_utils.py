@@ -28,6 +28,8 @@ import imageio
 
 from m_utils import GameObsInfo
 
+from model import ActionSampler
+
 
 class SMBRamWrapper(gym.ObservationWrapper):
     def __init__(self, env, crop_dim=[0, 16, 0, 13], n_stack=4, n_skip=2):
@@ -99,9 +101,10 @@ class SMB():
     '''
     Wrapper function containing the processed environment and the loaded model
     '''
-    def __init__(self, env, model):
+    def __init__(self, env, model,noise_level=0):
         self.env = env
         self.model = model
+        self.sampler = ActionSampler(model,noise_level)
     
     def play(self, episodes=5, deterministic=False, render=True, return_eval=False):
         for episode in range(1, episodes+1):
@@ -114,14 +117,16 @@ class SMB():
             if render == True:
                 while not done:
                     self.env.envs[0].render()
-                    action, _ = self.model.predict(states, deterministic=deterministic)
+                    #action, _ = self.model.predict(states, deterministic=deterministic)
+                    action = self.sampler.sample(states)
                     states, reward, done, info = self.env.step(action)
                     score += reward
                     time.sleep(0.01)
                 print('Episode:{} Score:{}'.format(episode, score))
             else:
                 while not done:
-                    action, _ = self.model.predict(states, deterministic=deterministic)
+                    #action, _ = self.model.predict(states, deterministic=deterministic)
+                    action = self.sampler.sample(states)
                     states, reward, done, info = self.env.step(action)
                     score += reward            
         if return_eval == True:

@@ -17,6 +17,8 @@ from pstd.sd.pipeline import rescale
 
 from torch.nn import functional as F
 
+from model import ActionSampler
+
 # Константы
 DATASET_FOLDER = 'game_images_dataset'  # Папка для хранения данных
 DATASET_SIZE = 1000  # Количество изображений в датасете
@@ -70,11 +72,17 @@ class Adv_SMB(SMB):
         # Инициализируем пустой массив для хранения всех изображений
         all_images = np.zeros((total_images, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS), dtype=np.uint8)
 
+        sampler = ActionSampler(model)
+
         # Цикл продолжается, пока не будет собрано достаточно данных
         with tqdm(total=total_images, desc="Collecting dataset") as pbar:
             while image_counter < total_images:
                 states = self.env.reset()  # Получение информации при reset
                 done = False
+
+                noise = np.random.uniform(0,0.5,size=(1,))[0]
+
+                sampler.set_noise_level(noise)
 
                 info = env_wrap.reset_infos[0]
                 
@@ -92,7 +100,8 @@ class Adv_SMB(SMB):
                     break
 
                 while not done:
-                    action, _ = self.model.predict(states, deterministic=deterministic)
+                    #action, _ = self.model.predict(states, deterministic=deterministic)
+                    action = sampler.sample(states)
                     states, reward, done, info = self.env.step(action)
 
                     info = info[0]
@@ -136,4 +145,4 @@ if __name__ == '__main__':
 
 
     s = Adv_SMB(env=env_wrap,model=model)
-    s.collect_game_dataset() 
+    s.collect_game_dataset(total_images=5000) 

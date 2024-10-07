@@ -24,6 +24,8 @@ def generate(
     tokenizer=None,
 ):
     with torch.no_grad():
+        vae.eval()
+        diffusion.eval()
         if not 0 < strength <= 1:
             raise ValueError("strength must be between 0 and 1")
 
@@ -79,7 +81,8 @@ def generate(
         # (Batch_Size, Channel, Height, Width) -> (Batch_Size, Height, Width, Channel)
         images = images.permute(0, 2, 3, 1)
         images = images.to("cpu", torch.uint8).numpy()
-        return images[0]
+        latents.to('cpu')
+        return images,latents
     
 def rescale(x, old_range, new_range, clamp=False):
     old_min, old_max = old_range

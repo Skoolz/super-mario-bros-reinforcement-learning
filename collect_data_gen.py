@@ -22,7 +22,7 @@ from vae import VAE
 # Константы
 DATASET_FOLDER = 'game_images_dataset'  # Папка для хранения данных
 DATASET_SIZE = 1000  # Количество изображений в датасете
-SEQUENCE_LENGTH = 2  # Длина последовательности
+SEQUENCE_LENGTH = 20  # Длина последовательности
 IMAGE_HEIGHT = 32  # Установите нужные размеры для изображений
 IMAGE_WIDTH = 32
 IMAGE_CHANNELS = 4
@@ -123,7 +123,8 @@ class Adv_SMB(SMB):
                     action_buffer.append(action_pad_index)  # Добавляем действие заглушку
 
                 while not done:
-                    action, _ = self.model.predict(states, deterministic=deterministic)
+                    #action, _ = self.model.predict(states, deterministic=deterministic)
+                    action = [3]
                     states, _, done, info = self.env.step(action)
 
                     info = info[0]

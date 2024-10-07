@@ -10,12 +10,12 @@ from collect_data_gen import SEQUENCE_LENGTH,CONTEXT_SPACE
 # Гиперпараметры
 DATASET_FOLDER = "game_images_dataset"
 DATASET_FILENAME = "game_dataset_gen.npy"
-BATCH_SIZE = 1  # Малый батч для градиентного накопления
-LEARNING_RATE = 1e-4
-EPOCHS = 10
+BATCH_SIZE = 25  # Малый батч для градиентного накопления
+LEARNING_RATE = 1e-6
+EPOCHS = 100
 NUM_TRAINING_STEPS = 1000
-ACCUMULATION_STEPS = 5  # Количество шагов для накопления градиентов
-INTERMEDIATE_SAVE_FREQUENCY = 2  # Частота сохранения модели
+ACCUMULATION_STEPS = 2  # Количество шагов для накопления градиентов
+INTERMEDIATE_SAVE_FREQUENCY = 5  # Частота сохранения модели
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_SAVE_PATH = 'diffusion_model.pth'
 CHECKPOINT_PATH = 'diffusion_checkpoint.pth'
