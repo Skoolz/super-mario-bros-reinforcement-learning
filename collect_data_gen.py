@@ -88,6 +88,7 @@ def encode_image(image,vae):
 class Adv_SMB(SMB):
     def __init__(self, env, model,vae):
         super().__init__(env, model)
+        self.vae = vae
     
     def collect_game_dataset(self, total_sequences=DATASET_SIZE, sequence_length=SEQUENCE_LENGTH, deterministic=False):
         ensure_dataset_folder_exists()
@@ -112,7 +113,7 @@ class Adv_SMB(SMB):
                 for _ in range(sequence_length):
                     if 'game_screen' in info:
                         game_screen = info['game_screen']
-                        game_screen = encode_image(game_screen,vae).to('cpu') # in case if we are using vae on cuda
+                        game_screen = encode_image(game_screen,self.vae).to('cpu') # in case if we are using vae on cuda
                         if game_screen.shape == (IMAGE_CHANNELS,IMAGE_HEIGHT, IMAGE_WIDTH):
                             image_buffer.append(game_screen)
                         else:
@@ -123,8 +124,7 @@ class Adv_SMB(SMB):
                     action_buffer.append(action_pad_index)  # Добавляем действие заглушку
 
                 while not done:
-                    #action, _ = self.model.predict(states, deterministic=deterministic)
-                    action = [3]
+                    action, _ = self.model.predict(states, deterministic=deterministic)
                     states, _, done, info = self.env.step(action)
 
                     info = info[0]
@@ -132,7 +132,7 @@ class Adv_SMB(SMB):
                     # Получаем изображение игры из info
                     if 'game_screen' in info:
                         game_screen = info['game_screen']
-                        game_screen = encode_image(game_screen,vae).to('cpu') # in case if we are using vae on cuda
+                        game_screen = encode_image(game_screen,self.vae).to('cpu') # in case if we are using vae on cuda
                         if game_screen.shape == (IMAGE_CHANNELS,IMAGE_HEIGHT, IMAGE_WIDTH):
                             image_buffer.append(game_screen)
                             action_buffer.append(action[0])

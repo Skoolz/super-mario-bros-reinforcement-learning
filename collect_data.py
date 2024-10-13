@@ -80,7 +80,7 @@ class Adv_SMB(SMB):
                 states = self.env.reset()  # Получение информации при reset
                 done = False
 
-                noise = np.random.uniform(0,0.1,size=(1,))[0]
+                noise = 0
 
                 sampler.set_noise_level(noise)
 

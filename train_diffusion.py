@@ -10,15 +10,15 @@ from collect_data_gen import SEQUENCE_LENGTH,CONTEXT_SPACE
 # Гиперпараметры
 DATASET_FOLDER = "game_images_dataset"
 DATASET_FILENAME = "game_dataset_gen.npy"
-BATCH_SIZE = 25  # Малый батч для градиентного накопления
+BATCH_SIZE = 1  # Малый батч для градиентного накопления
 LEARNING_RATE = 1e-6
-EPOCHS = 100
+EPOCHS = 1
 NUM_TRAINING_STEPS = 1000
 ACCUMULATION_STEPS = 2  # Количество шагов для накопления градиентов
 INTERMEDIATE_SAVE_FREQUENCY = 5  # Частота сохранения модели
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_SAVE_PATH = 'diffusion_model.pth'
-CHECKPOINT_PATH = 'diffusion_checkpoint.pth'
+CHECKPOINT_PATH = 'diffusion_checkpoint1.pth'
 
 
 # Функция для сохранения состояния обучения
@@ -84,8 +84,9 @@ def train_diffusion_model(model, dataloader, sampler,checkpoint_path=None):
             noisy_target, noise = sampler.add_noise(target_images, timesteps)
 
 
-            images_timesteps = torch.randint(0,sampler.num_train_timesteps//2, (batch_size,seq_len-1), device=DEVICE) #(batch_sisze, seq_len-1)
-            images,_ = sampler.add_noise(images,images_timesteps) #(batch_size,(seq_len-1),4,32,32)
+            images_timesteps = torch.randint(0,sampler.num_train_timesteps//2, (batch_size,(seq_len-1)*4), device=DEVICE) #(batch_sisze, (seq_len-1)*4)
+
+            images,_ = sampler.add_noise(images,images_timesteps) #(batch_size,(seq_len-1)*4,32,32)
             
             
             # Объединяем оставшиеся кадры и зашумленные target кадры
