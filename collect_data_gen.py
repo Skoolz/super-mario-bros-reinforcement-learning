@@ -19,6 +19,8 @@ from torch.nn import functional as F
 
 from vae import VAE
 
+from model import EpsilonGreedyActionSampler
+
 # Константы
 DATASET_FOLDER = 'game_images_dataset'  # Папка для хранения данных
 DATASET_SIZE = 1000  # Количество изображений в датасете
@@ -99,6 +101,8 @@ class Adv_SMB(SMB):
 
         action_pad_index = self.env.action_space.n
 
+        sampler = EpsilonGreedyActionSampler(self.model)
+
         # Цикл продолжается, пока не будет собрано достаточно данных
         with tqdm(total=total_sequences, desc="Collecting dataset") as pbar:
             while sequence_counter < total_sequences:
@@ -124,7 +128,8 @@ class Adv_SMB(SMB):
                     action_buffer.append(action_pad_index)  # Добавляем действие заглушку
 
                 while not done:
-                    action, _ = self.model.predict(states, deterministic=deterministic)
+                    #action, _ = self.model.predict(states, deterministic=deterministic)
+                    action = sampler.sample(states)
                     states, _, done, info = self.env.step(action)
 
                     info = info[0]
