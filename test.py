@@ -40,14 +40,6 @@ n_skip = 4
 
 #print(info[0]['game_screen'].shape)
 
-# d = DDPMSampler(generator=torch.Generator())
-
-# x = torch.ones(size=(2,4,5,5))
-
-# x,noise = d.add_noise(x,torch.tensor([999,0],dtype=torch.int32))
-
-# print(noise.shape)
-
 # from collections import deque
 
 # d = deque()
@@ -60,3 +52,14 @@ n_skip = 4
 
 # print(d.shape)
 
+d = DDPMSampler(generator=torch.Generator())
+
+x = torch.ones(size=(3,4,5,5))
+
+timesteps = torch.randint(0,500,size=(3,))
+
+print(timesteps)
+
+x,noise = d.add_noise(x,timesteps)
+
+print(x[0])

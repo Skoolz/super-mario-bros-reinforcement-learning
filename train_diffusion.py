@@ -82,6 +82,11 @@ def train_diffusion_model(model, dataloader, sampler,checkpoint_path=None):
 
             # Добавляем шум только к target кадрам
             noisy_target, noise = sampler.add_noise(target_images, timesteps)
+
+
+            images_timesteps = torch.randint(0,sampler.num_train_timesteps//2, (batch_size,seq_len-1), device=DEVICE) #(batch_sisze, seq_len-1)
+            images,_ = sampler.add_noise(images,images_timesteps) #(batch_size,(seq_len-1),4,32,32)
+            
             
             # Объединяем оставшиеся кадры и зашумленные target кадры
             combined_images = torch.cat((images, noisy_target), dim=1)

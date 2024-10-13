@@ -339,7 +339,7 @@ class Diffusion(nn.Module):
         # latent: (Batch_Size, 4, Height / 8, Width / 8)
         # context: (Batch_Size, Seq_Len, Dim)
 
-        time = self.time_embedding(time) #(B,640)
+        time = self.time_embedding(time) #(B,seq_len,640)
 
         context = self.context_embedding(context) #(B,64)
         

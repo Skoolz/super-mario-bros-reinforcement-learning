@@ -52,7 +52,7 @@ class Game:
         actions = actions.unsqueeze(0) #(1,seq_len)
 
         image,latent = generate(actions=actions,images=images,diffusion=self.diffusion,
-                                vae=self.vae,n_inference_steps=10)
+                                vae=self.vae,n_inference_steps=15)
         
         #image (1,256,256,3)
         #latent (1,4,32,32)

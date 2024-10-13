@@ -170,7 +170,7 @@ if __name__ == '__main__':
     MODEL_NAME = 'pre-trained-1'
 
     env_wrap = load_smb_env('SuperMarioBros-1-1-v0', crop_dim, n_stack, n_skip)
-    model = PPO.load(os.path.join(MODEL_DIR, MODEL_NAME), env=env_wrap)
+    model = PPO.load(os.path.join(MODEL_DIR, MODEL_NAME), env=env_wrap,device='cpu')
 
     vae = VAE()
 

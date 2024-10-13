@@ -1,3 +1,4 @@
 
 *.pth
 /game_images_dataset
+*.bin

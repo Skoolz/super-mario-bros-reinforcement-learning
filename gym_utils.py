@@ -28,7 +28,7 @@ import imageio
 
 from m_utils import GameObsInfo
 
-from model import ActionSampler
+from model import ActionSampler,EpsilonGreedyActionSampler
 
 
 class SMBRamWrapper(gym.ObservationWrapper):
@@ -104,7 +104,7 @@ class SMB():
     def __init__(self, env, model,noise_level=0):
         self.env = env
         self.model = model
-        self.sampler = ActionSampler(model,noise_level)
+        self.sampler = EpsilonGreedyActionSampler(model)
     
     def play(self, episodes=5, deterministic=False, render=True, return_eval=False):
         for episode in range(1, episodes+1):
@@ -119,6 +119,7 @@ class SMB():
                     self.env.envs[0].render()
                     #action, _ = self.model.predict(states, deterministic=deterministic)
                     action = self.sampler.sample(states)
+
                     states, reward, done, info = self.env.step(action)
                     score += reward
                     time.sleep(0.01)

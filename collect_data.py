@@ -80,7 +80,7 @@ class Adv_SMB(SMB):
                 states = self.env.reset()  # Получение информации при reset
                 done = False
 
-                noise = np.random.uniform(0,0.5,size=(1,))[0]
+                noise = np.random.uniform(0,0.1,size=(1,))[0]
 
                 sampler.set_noise_level(noise)
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     MODEL_NAME = 'pre-trained-1'
 
     env_wrap = load_smb_env('SuperMarioBros-1-1-v0', crop_dim, n_stack, n_skip)
-    model = PPO.load(os.path.join(MODEL_DIR, MODEL_NAME), env=env_wrap)
+    model = PPO.load(os.path.join(MODEL_DIR, MODEL_NAME), env=env_wrap,device='cpu')
 
 
     s = Adv_SMB(env=env_wrap,model=model)
