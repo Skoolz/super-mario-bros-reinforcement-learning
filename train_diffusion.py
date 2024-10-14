@@ -74,8 +74,7 @@ def train_diffusion_model(model, dataloader, sampler,checkpoint_path=None):
             # Убираем последний кадр из исходных данных
             images = images[:, :-1]  # Все кадры кроме последнего (b,seq_len-1,4,32,32)
             
-            # Объединяем оставшиеся кадры (batch_size, (seq_len-1)*4, 32, 32)
-            images = images.view(batch_size, -1, height, width)  # (batch_size, (seq_len-1)*4, 32, 32)
+            
 
             # Получаем случайные временные шаги для каждого батча
             timesteps = torch.randint(0, sampler.num_train_timesteps, (batch_size,), device=DEVICE)
@@ -84,25 +83,31 @@ def train_diffusion_model(model, dataloader, sampler,checkpoint_path=None):
             noisy_target, noise = sampler.add_noise(target_images, timesteps)
 
 
-            images_timesteps = torch.randint(0,sampler.num_train_timesteps//2, (batch_size,(seq_len-1)*4), device=DEVICE) #(batch_sisze, (seq_len-1)*4)
+            images_timesteps = torch.randint(0,sampler.num_train_timesteps//4, (batch_size,), device=DEVICE) #(batch_size)
 
-            images,_ = sampler.add_noise(images,images_timesteps) #(batch_size,(seq_len-1)*4,32,32)
+            images,_ = sampler.add_noise(images,images_timesteps) #(batch_size,seq_len-1,4,32,32)
+
+            # Объединяем оставшиеся кадры (batch_size, (seq_len-1)*4, 32, 32)
+            images = images.view(batch_size, -1, height, width)  # (batch_size, (seq_len-1)*4, 32, 32)
             
             
             # Объединяем оставшиеся кадры и зашумленные target кадры
             combined_images = torch.cat((images, noisy_target), dim=1)
             
             # Получаем time embedding для каждого элемента в батче
-            time_embedding = sampler.get_time_embedding(timesteps)
+            time_embedding = sampler.get_time_embedding(timesteps) #(batch_size,320)
+
+            alpha_time_embedding = sampler.get_time_embedding(images_timesteps) #(batch_size,320)
             
             # Перемещаем данные на GPU (если доступно)
             combined_images = combined_images.to(DEVICE) #(batch_size, seq_len*4, 32, 32)
             actions = actions.to(DEVICE) #(batch_size, seq_len)
             noise = noise.to(DEVICE) #(batch_size, 4, 32, 32)
             time_embedding = time_embedding.to(DEVICE) #(batch_size, 320)
+            alpha_time_embedding = alpha_time_embedding.to(DEVICE)
 
             # Прогоняем через модель
-            predicted_noise = model(combined_images, actions, time_embedding) #(batch_size, 4, 32, 32)
+            predicted_noise = model(combined_images, actions, time_embedding,alpha_time_embedding) #(batch_size, 4, 32, 32)
 
             # Вычисляем ошибку (MSE между реальным и предсказанным шумом для target)
             loss = torch.nn.functional.mse_loss(predicted_noise, noise)

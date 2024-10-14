@@ -329,22 +329,26 @@ class UNET_OutputLayer(nn.Module):
 class Diffusion(nn.Module):
     def __init__(self,seq_len,context_space):
         super().__init__()
-        self.time_embedding = TimeEmbedding(320)
+        self.time_embedding = TimeEmbedding(640)
         self.unet = UNET(seq_len)
         self.final = UNET_OutputLayer(160, 4)
         self.context_embedding = nn.Embedding(context_space,64)
         self.seq_len = seq_len
     
-    def forward(self, latent, context, time):
+    def forward(self, latent, context, time, alpha_time):
         # latent: (Batch_Size, 4, Height / 8, Width / 8)
         # context: (Batch_Size, Seq_Len, Dim)
+        # time: (Batch_Size,320)
+        # alpha_time (Batch_Size,320)
 
-        time = self.time_embedding(time) #(B,seq_len,640)
+        concat_time = torch.cat([time,alpha_time],dim=1) #(B,640)
+
+        concat_time = self.time_embedding(concat_time) #(B,640)
 
         context = self.context_embedding(context) #(B,64)
         
         # (Batch, 4, Height / 8, Width / 8) -> (Batch, 160, Height / 8, Width / 8)
-        output = self.unet(latent, context, time)
+        output = self.unet(latent, context, concat_time)
         
         # (Batch, 160, Height / 8, Width / 8) -> (Batch, 4, Height / 8, Width / 8)
         output = self.final(output)

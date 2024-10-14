@@ -104,7 +104,7 @@ class DDPMSampler:
         alphas_cumprod = self.alphas_cumprod.to(device=original_samples.device, dtype=original_samples.dtype)
         timesteps = timesteps.to(original_samples.device)
 
-        sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5 #(batch_size,seq_len) or (batch_size)
+        sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
         #sqrt_alpha_prod = sqrt_alpha_prod.flatten()
         while len(sqrt_alpha_prod.shape) < len(original_samples.shape):
             sqrt_alpha_prod = sqrt_alpha_prod.unsqueeze(-1)

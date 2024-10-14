@@ -62,4 +62,4 @@ print(timesteps)
 
 x,noise = d.add_noise(x,timesteps)
 
-print(x[0])
+print(x.shape[0])
